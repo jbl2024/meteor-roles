@@ -84,23 +84,28 @@
 <div class="file">
     <pre class="code prettyprint linenums">
 /* global Meteor, Roles */
-if (Meteor.roles.createIndex) {
-  Meteor.roleAssignment.createIndex({ &#x27;user._id&#x27;: 1, &#x27;inheritedRoles._id&#x27;: 1, scope: 1 })
-  Meteor.roleAssignment.createIndex({ &#x27;user._id&#x27;: 1, &#x27;role._id&#x27;: 1, scope: 1 })
-  Meteor.roleAssignment.createIndex({ &#x27;role._id&#x27;: 1 })
-  Meteor.roleAssignment.createIndex({ scope: 1, &#x27;user._id&#x27;: 1, &#x27;inheritedRoles._id&#x27;: 1 }) // Adding userId and roleId might speed up other queries depending on the first index
-  Meteor.roleAssignment.createIndex({ &#x27;inheritedRoles._id&#x27;: 1 })
+let indexFnAssignment
+let indexFnRoles
 
-  Meteor.roles.createIndex({ &#x27;children._id&#x27;: 1 })
+if (Meteor.roles.createIndexAsync) {
+  indexFnAssignment = Meteor.roleAssignment.createIndexAsync.bind(Meteor.roleAssignment)
+  indexFnRoles = Meteor.roles.createIndexAsync.bind(Meteor.roles)
+} else if (Meteor.roles.createIndex) {
+  indexFnAssignment = Meteor.roleAssignment.createIndex.bind(Meteor.roleAssignment)
+  indexFnRoles = Meteor.roles.createIndex.bind(Meteor.roles)
 } else {
-  Meteor.roleAssignment._ensureIndex({ &#x27;user._id&#x27;: 1, &#x27;inheritedRoles._id&#x27;: 1, scope: 1 })
-  Meteor.roleAssignment._ensureIndex({ &#x27;user._id&#x27;: 1, &#x27;role._id&#x27;: 1, scope: 1 })
-  Meteor.roleAssignment._ensureIndex({ &#x27;role._id&#x27;: 1 })
-  Meteor.roleAssignment._ensureIndex({ scope: 1, &#x27;user._id&#x27;: 1, &#x27;inheritedRoles._id&#x27;: 1 }) // Adding userId and roleId might speed up other queries depending on the first index
-  Meteor.roleAssignment._ensureIndex({ &#x27;inheritedRoles._id&#x27;: 1 })
-
-  Meteor.roles._ensureIndex({ &#x27;children._id&#x27;: 1 })
+  indexFnAssignment = Meteor.roleAssignment._ensureIndex.bind(Meteor.roleAssignment)
+  indexFnRoles = Meteor.roles._ensureIndex.bind(Meteor.roles)
 }
+
+[
+  { &#x27;user._id&#x27;: 1, &#x27;inheritedRoles._id&#x27;: 1, scope: 1 },
+  { &#x27;user._id&#x27;: 1, &#x27;role._id&#x27;: 1, scope: 1 },
+  { &#x27;role._id&#x27;: 1 },
+  { scope: 1, &#x27;user._id&#x27;: 1, &#x27;inheritedRoles._id&#x27;: 1 }, // Adding userId and roleId might speed up other queries depending on the first index
+  { &#x27;inheritedRoles._id&#x27;: 1 }
+].forEach(index =&gt; indexFnAssignment(index))
+indexFnRoles({ &#x27;children._id&#x27;: 1 })
 
 /*
  * Publish logged-in user&#x27;s roles so client-side checks can work.
@@ -108,8 +113,8 @@ if (Meteor.roles.createIndex) {
  * Use a named publish function so clients can check &#x60;ready()&#x60; state.
  */
 Meteor.publish(&#x27;_roles&#x27;, function () {
-  var loggedInUserId = this.userId
-  var fields = { roles: 1 }
+  const loggedInUserId = this.userId
+  const fields = { roles: 1 }
 
   if (!loggedInUserId) {
     this.ready()
@@ -118,7 +123,7 @@ Meteor.publish(&#x27;_roles&#x27;, function () {
 
   return Meteor.users.find(
     { _id: loggedInUserId },
-    { fields: fields }
+    { fields }
   )
 })
 
@@ -159,7 +164,7 @@ Object.assign(Roles, {
    * @static
    */
   _isNewField: function (roles) {
-    return Array.isArray(roles) &amp;&amp; (typeof roles[0] === &#x27;object&#x27;)
+    return Array.isArray(roles) &amp;&amp; typeof roles[0] === &#x27;object&#x27;
   },
 
   /**
@@ -172,7 +177,10 @@ Object.assign(Roles, {
    * @static
    */
   _isOldField: function (roles) {
-    return (Array.isArray(roles) &amp;&amp; (typeof roles[0] === &#x27;string&#x27;)) || ((typeof roles === &#x27;object&#x27;) &amp;&amp; !Array.isArray(roles))
+    return (
+      (Array.isArray(roles) &amp;&amp; typeof roles[0] === &#x27;string&#x27;) ||
+      (typeof roles === &#x27;object&#x27; &amp;&amp; !Array.isArray(roles))
+    )
   },
 
   /**
@@ -184,7 +192,7 @@ Object.assign(Roles, {
    * @static
    */
   _convertToNewRole: function (oldRole) {
-    if (!(typeof oldRole.name === &#x27;string&#x27;)) throw new Error(&quot;Role name &#x27;&quot; + oldRole.name + &quot;&#x27; is not a string.&quot;)
+    if (!(typeof oldRole.name === &#x27;string&#x27;)) { throw new Error(&quot;Role name &#x27;&quot; + oldRole.name + &quot;&#x27; is not a string.&quot;) }
 
     return {
       _id: oldRole.name,
@@ -201,7 +209,7 @@ Object.assign(Roles, {
    * @static
    */
   _convertToOldRole: function (newRole) {
-    if (!(typeof newRole._id === &#x27;string&#x27;)) throw new Error(&quot;Role name &#x27;&quot; + newRole._id + &quot;&#x27; is not a string.&quot;)
+    if (!(typeof newRole._id === &#x27;string&#x27;)) { throw new Error(&quot;Role name &#x27;&quot; + newRole._id + &quot;&#x27; is not a string.&quot;) }
 
     return {
       name: newRole._id
@@ -218,10 +226,10 @@ Object.assign(Roles, {
    * @static
    */
   _convertToNewField: function (oldRoles, convertUnderscoresToDots) {
-    var roles = []
+    const roles = []
     if (Array.isArray(oldRoles)) {
       oldRoles.forEach(function (role, index) {
-        if (!(typeof role === &#x27;string&#x27;)) throw new Error(&quot;Role &#x27;&quot; + role + &quot;&#x27; is not a string.&quot;)
+        if (!(typeof role === &#x27;string&#x27;)) { throw new Error(&quot;Role &#x27;&quot; + role + &quot;&#x27; is not a string.&quot;) }
 
         roles.push({
           _id: role,
@@ -239,7 +247,7 @@ Object.assign(Roles, {
         }
 
         rolesArray.forEach(function (role) {
-          if (!(typeof role === &#x27;string&#x27;)) throw new Error(&quot;Role &#x27;&quot; + role + &quot;&#x27; is not a string.&quot;)
+          if (!(typeof role === &#x27;string&#x27;)) { throw new Error(&quot;Role &#x27;&quot; + role + &quot;&#x27; is not a string.&quot;) }
 
           roles.push({
             _id: role,
@@ -262,7 +270,7 @@ Object.assign(Roles, {
    * @static
    */
   _convertToOldField: function (newRoles, usingGroups) {
-    var roles
+    let roles
 
     if (usingGroups) {
       roles = {}
@@ -271,18 +279,26 @@ Object.assign(Roles, {
     }
 
     newRoles.forEach(function (userRole) {
-      if (!(typeof userRole === &#x27;object&#x27;)) throw new Error(&quot;Role &#x27;&quot; + userRole + &quot;&#x27; is not an object.&quot;)
+      if (!(typeof userRole === &#x27;object&#x27;)) { throw new Error(&quot;Role &#x27;&quot; + userRole + &quot;&#x27; is not an object.&quot;) }
 
       // We assume that we are converting back a failed migration, so values can only be
       // what were valid values in 1.0. So no group names starting with $ and no subroles.
 
       if (userRole.scope) {
-        if (!usingGroups) throw new Error(&quot;Role &#x27;&quot; + userRole._id + &quot;&#x27; with scope &#x27;&quot; + userRole.scope + &quot;&#x27; without enabled groups.&quot;)
+        if (!usingGroups) {
+          throw new Error(
+            &quot;Role &#x27;&quot; +
+              userRole._id +
+              &quot;&#x27; with scope &#x27;&quot; +
+              userRole.scope +
+              &quot;&#x27; without enabled groups.&quot;
+          )
+        }
 
         // escape
-        var scope = userRole.scope.replace(/\./g, &#x27;_&#x27;)
+        const scope = userRole.scope.replace(/\./g, &#x27;_&#x27;)
 
-        if (scope[0] === &#x27;$&#x27;) throw new Error(&quot;Group name &#x27;&quot; + scope + &quot;&#x27; start with $.&quot;)
+        if (scope[0] === &#x27;$&#x27;) { throw new Error(&quot;Group name &#x27;&quot; + scope + &quot;&#x27; start with $.&quot;) }
 
         roles[scope] = roles[scope] || []
         roles[scope].push(userRole._id)
@@ -307,13 +323,16 @@ Object.assign(Roles, {
    * @static
    */
   _defaultUpdateUser: function (user, roles) {
-    Meteor.users.update({
-      _id: user._id,
-      // making sure nothing changed in meantime
-      roles: user.roles
-    }, {
-      $set: { roles }
-    })
+    Meteor.users.update(
+      {
+        _id: user._id,
+        // making sure nothing changed in meantime
+        roles: user.roles
+      },
+      {
+        $set: { roles }
+      }
+    )
   },
 
   /**
@@ -341,8 +360,11 @@ Object.assign(Roles, {
     try {
       collection._dropIndex(indexName)
     } catch (e) {
-      if (e.name !== &#x27;MongoError&#x27;) throw e
-      if (!/index not found/.test(e.err || e.errmsg)) throw e
+      const indexNotFound = /index not found/.test(e.message || e.err || e.errmsg)
+
+      if (!indexNotFound) {
+        throw e
+      }
     }
   },
 
@@ -371,7 +393,10 @@ Object.assign(Roles, {
 
     Meteor.users.find().forEach(function (user, index, cursor) {
       if (!Roles._isNewField(user.roles)) {
-        updateUser(user, Roles._convertToNewField(user.roles, convertUnderscoresToDots))
+        updateUser(
+          user,
+          Roles._convertToNewField(user.roles, convertUnderscoresToDots)
+        )
       }
     })
   },
@@ -390,10 +415,15 @@ Object.assign(Roles, {
     Object.assign(userSelector, { roles: { $ne: null } })
 
     Meteor.users.find(userSelector).forEach(function (user, index) {
-      user.roles.filter((r) =&gt; r.assigned).forEach(r =&gt; {
-        // Added &#x60;ifExists&#x60; to make it less error-prone
-        Roles._addUserToRole(user._id, r._id, { scope: r.scope, ifExists: true })
-      })
+      user.roles
+        .filter((r) =&gt; r.assigned)
+        .forEach((r) =&gt; {
+          // Added &#x60;ifExists&#x60; to make it less error-prone
+          Roles._addUserToRole(user._id, r._id, {
+            scope: r.scope,
+            ifExists: true
+          })
+        })
 
       Meteor.users.update({ _id: user._id }, { $unset: { roles: &#x27;&#x27; } })
     })
@@ -458,10 +488,12 @@ Object.assign(Roles, {
       Meteor.users._ensureIndex({ &#x27;roles.scope&#x27;: 1 })
     }
 
-    Meteor.roleAssignment.find(assignmentSelector).forEach(r =&gt; {
+    Meteor.roleAssignment.find(assignmentSelector).forEach((r) =&gt; {
       const roles = Meteor.users.findOne({ _id: r.user._id }).roles || []
 
-      const currentRole = roles.find(oldRole =&gt; oldRole._id === r.role._id &amp;&amp; oldRole.scope === r.scope)
+      const currentRole = roles.find(
+        (oldRole) =&gt; oldRole._id === r.role._id &amp;&amp; oldRole.scope === r.scope
+      )
       if (currentRole) {
         currentRole.assigned = true
       } else {
@@ -471,8 +503,11 @@ Object.assign(Roles, {
           assigned: true
         })
 
-        r.inheritedRoles.forEach(inheritedRole =&gt; {
-          const currentInheritedRole = roles.find(oldRole =&gt; oldRole._id === inheritedRole._id &amp;&amp; oldRole.scope === r.scope)
+        r.inheritedRoles.forEach((inheritedRole) =&gt; {
+          const currentInheritedRole = roles.find(
+            (oldRole) =&gt;
+              oldRole._id === inheritedRole._id &amp;&amp; oldRole.scope === r.scope
+          )
 
           if (!currentInheritedRole) {
             roles.push({

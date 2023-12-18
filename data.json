@@ -2,7 +2,7 @@
     "project": {
         "name": "The meteor-roles API",
         "description": "The meteor-roles API: an authorization package for Meteor",
-        "version": "v3.4.0"
+        "version": "v3.6.0"
     },
     "files": {
         "roles/client/subscriptions.js": {
@@ -30,6 +30,13 @@
             "modules": {
                 "Roles": 1
             },
+            "classes": {},
+            "fors": {},
+            "namespaces": {}
+        },
+        "roles/roles_common_async.js": {
+            "name": "roles/roles_common_async.js",
+            "modules": {},
             "classes": {
                 "Roles": 1
             },
@@ -75,8 +82,8 @@
             },
             "namespaces": {},
             "tag": "module",
-            "file": "roles/roles_common.js",
-            "line": 35,
+            "file": "roles/roles_common_async.js",
+            "line": 37,
             "description": "Provides functions related to user authorization. Compatible with built-in Meteor accounts packages.\n\nRoles are accessible throgh `Meteor.roles` collection and documents consist of:\n - `_id`: role name\n - `children`: list of subdocuments:\n   - `_id`\n\nChildren list elements are subdocuments so that they can be easier extended in the future or by plugins.\n\nRoles can have multiple parents and can be children (subroles) of multiple roles.\n\nExample: `{_id: 'admin', children: [{_id: 'editor'}]}`\n\nThe assignment of a role to a user is stored in a collection, accessible through `Meteor.roleAssignment`.\nIt's documents consist of\n - `_id`: Internal MongoDB id\n - `role`: A role object which got assigned. Usually only contains the `_id` property\n - `user`: A user object, usually only contains the `_id` property\n - `scope`: scope name\n - `inheritedRoles`: A list of all the roles objects inherited by the assigned role."
         }
     },
@@ -90,8 +97,8 @@
             "plugin_for": [],
             "extension_for": [],
             "module": "Roles",
-            "file": "roles/roles_common.js",
-            "line": 35
+            "file": "roles/roles_common_async.js",
+            "line": 37
         },
         "UIHelpers": {
             "name": "UIHelpers",
@@ -229,7 +236,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 192,
+            "line": 191,
             "description": "Add role parent to roles.\n\nPrevious parents are kept (role can have multiple parents). For users which have the\nparent role set, new subroles are added automatically.",
             "itemtype": "method",
             "name": "addRolesToParent",
@@ -251,7 +258,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 212,
+            "line": 211,
             "itemtype": "method",
             "name": "_addRoleToParent",
             "params": [
@@ -274,7 +281,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 264,
+            "line": 260,
             "description": "Remove role parent from roles.\n\nOther parents are kept (role can have multiple parents). For users which have the\nparent role set, removed subrole is removed automatically.",
             "itemtype": "method",
             "name": "removeRolesFromParent",
@@ -296,7 +303,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 284,
+            "line": 280,
             "itemtype": "method",
             "name": "_removeRoleFromParent",
             "params": [
@@ -319,7 +326,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 333,
+            "line": 329,
             "description": "Add users to roles.\n\nAdds roles to existing roles for each user.",
             "example": [
                 "\n    Roles.addUsersToRoles(userId, 'admin')\n    Roles.addUsersToRoles(userId, ['view-secrets'], 'example.com')\n    Roles.addUsersToRoles([user1, user2], ['user','editor'])\n    Roles.addUsersToRoles([user1, user2], ['glorious-admin', 'perform-action'], 'example.org')"
@@ -350,7 +357,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 385,
+            "line": 381,
             "description": "Set users' roles.\n\nReplaces all existing roles with a new set of roles.",
             "example": [
                 "\n    Roles.setUserRoles(userId, 'admin')\n    Roles.setUserRoles(userId, ['view-secrets'], 'example.com')\n    Roles.setUserRoles([user1, user2], ['user','editor'])\n    Roles.setUserRoles([user1, user2], ['glorious-admin', 'perform-action'], 'example.org')"
@@ -381,7 +388,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 447,
+            "line": 443,
             "description": "Add one user to one role.",
             "itemtype": "method",
             "name": "_addUserToRole",
@@ -410,7 +417,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 501,
+            "line": 497,
             "description": "Returns an array of role names the given role name is a child of.",
             "example": [
                 "\n    Roles._getParentRoleNames({ _id: 'admin', children; [] })"
@@ -432,7 +439,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 532,
+            "line": 526,
             "description": "Returns an array of role names the given role name is a parent of.",
             "example": [
                 "\n    Roles._getInheritedRoleNames({ _id: 'admin', children; [] })"
@@ -454,7 +461,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 559,
+            "line": 553,
             "description": "Remove users from assigned roles.",
             "example": [
                 "\n    Roles.removeUsersFromRoles(userId, 'admin')\n    Roles.removeUsersFromRoles([userId, user2], ['editor'])\n    Roles.removeUsersFromRoles(userId, ['user'], 'group1')"
@@ -485,7 +492,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 605,
+            "line": 599,
             "description": "Remove one user from one role.",
             "itemtype": "method",
             "name": "_removeUserFromRole",
@@ -514,7 +521,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 635,
+            "line": 629,
             "description": "Check if user has specified roles.",
             "example": [
                 "\n    // global roles\n    Roles.userIsInRole(user, 'admin')\n    Roles.userIsInRole(user, ['admin','editor'])\n    Roles.userIsInRole(userId, 'admin')\n    Roles.userIsInRole(userId, ['admin','editor'])\n\n    // scope roles (global roles are still checked)\n    Roles.userIsInRole(user, 'admin', 'group1')\n    Roles.userIsInRole(userId, ['admin','editor'], 'group1')\n    Roles.userIsInRole(userId, ['admin','editor'], {scope: 'group1'})"
@@ -549,7 +556,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 707,
+            "line": 697,
             "description": "Retrieve user's roles.",
             "itemtype": "method",
             "name": "getRolesForUser",
@@ -561,7 +568,7 @@
                 },
                 {
                     "name": "options",
-                    "description": "Options:\n  - `scope`: name of scope to provide roles for; if not specified, global roles are returned\n  - `anyScope`: if set, role can be in any scope (`scope` and `onlyAssigned` options are ignored)\n  - `onlyScoped`: if set, only roles in the specified scope are returned\n  - `onlyAssigned`: return only assigned roles and not automatically inferred (like subroles)\n  - `fullObjects`: return full roles objects (`true`) or just names (`false`) (`onlyAssigned` option is ignored) (default `false`)\n    If you have a use-case for this option, please file a feature-request. You shouldn't need to use it as it's\n    result strongly dependant on the internal data structure of this plugin.\n\nAlternatively, it can be a scope name string.",
+                    "description": "Options:\n  - `scope`: name of scope to provide roles for; if not specified, global roles are returned\n  - `anyScope`: if set, role can be in any scope (`scope` and `onlyAssigned` options are ignored)\n  - `onlyScoped`: if set, only roles in the specified scope are returned\n  - `onlyAssigned`: return only assigned roles and not automatically inferred (like subroles)\n  - `fullObjects`: return full roles objects (`true`) or just names (`false`) (`onlyAssigned` option is ignored) (default `false`)\n    If you have a use-case for this option, please file a feature-request. You shouldn't need to use it as it's\n    result strongly dependent on the internal data structure of this plugin.\n\nAlternatively, it can be a scope name string.",
                     "type": "Object|String",
                     "optional": true
                 }
@@ -576,7 +583,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 791,
+            "line": 773,
             "description": "Retrieve cursor of all existing roles.",
             "itemtype": "method",
             "name": "getAllRoles",
@@ -584,8 +591,7 @@
                 {
                     "name": "queryOptions",
                     "description": "Options which are passed directly\n                               through to `Meteor.roles.find(query, options)`.",
-                    "type": "Object",
-                    "optional": true
+                    "type": "Object"
                 }
             ],
             "return": {
@@ -598,7 +604,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 806,
+            "line": 788,
             "description": "Retrieve all users who are in target role.\n\nOptions:",
             "itemtype": "method",
             "name": "getUsersInRole",
@@ -631,7 +637,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 838,
+            "line": 818,
             "description": "Retrieve all assignments of a user which are for the target role.\n\nOptions:",
             "itemtype": "method",
             "name": "getUserAssignmentsForRole",
@@ -658,7 +664,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 870,
+            "line": 850,
             "itemtype": "method",
             "name": "_getUsersInRoleCursor",
             "params": [
@@ -692,7 +698,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 922,
+            "line": 898,
             "description": "Deprecated. Use `getScopesForUser` instead.",
             "itemtype": "method",
             "name": "getGroupsForUser",
@@ -703,7 +709,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 938,
+            "line": 914,
             "description": "Retrieve users scopes, if any.",
             "itemtype": "method",
             "name": "getScopesForUser",
@@ -730,7 +736,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 976,
+            "line": 951,
             "description": "Rename a scope.\n\nRoles assigned with a given scope are changed to be under the new scope.",
             "itemtype": "method",
             "name": "renameScope",
@@ -752,7 +758,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 1005,
+            "line": 980,
             "description": "Remove a scope.\n\nRoles assigned with a given scope are removed.",
             "itemtype": "method",
             "name": "removeScope",
@@ -769,7 +775,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 1020,
+            "line": 995,
             "description": "Throw an exception if `roleName` is an invalid role name.",
             "itemtype": "method",
             "name": "_checkRoleName",
@@ -788,7 +794,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 1034,
+            "line": 1009,
             "description": "Find out if a role is an ancestor of another role.\n\nWARNING: If you check this on the client, please make sure all roles are published.",
             "itemtype": "method",
             "name": "isParentOf",
@@ -810,7 +816,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 1075,
+            "line": 1050,
             "description": "Normalize options.",
             "itemtype": "method",
             "name": "_normalizeOptions",
@@ -833,7 +839,7 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 1096,
+            "line": 1071,
             "description": "Normalize scope name.",
             "itemtype": "method",
             "name": "_normalizeScopeName",
@@ -856,7 +862,821 @@
         },
         {
             "file": "roles/roles_common.js",
-            "line": 1114,
+            "line": 1089,
+            "description": "Throw an exception if `scopeName` is an invalid scope name.",
+            "itemtype": "method",
+            "name": "_checkRoleName",
+            "params": [
+                {
+                    "name": "scopeName",
+                    "description": "A scope name to match against.",
+                    "type": "String"
+                }
+            ],
+            "access": "private",
+            "tagname": "",
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 46,
+            "description": "Helper, resolves async some",
+            "params": [
+                {
+                    "name": "arr",
+                    "description": "",
+                    "type": "*"
+                },
+                {
+                    "name": "predicate",
+                    "description": "",
+                    "type": "*"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise<Boolean>"
+            },
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 60,
+            "description": "Used as a global group (now scope) name. Not used anymore.",
+            "itemtype": "property",
+            "name": "GLOBAL_GROUP",
+            "static": 1,
+            "deprecated": true,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 69,
+            "description": "Create a new role.",
+            "itemtype": "method",
+            "name": "createRoleAsync",
+            "params": [
+                {
+                    "name": "roleName",
+                    "description": "Name of role.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "Options:\n  - `unlessExists`: if `true`, exception will not be thrown in the role already exists",
+                    "type": "Object",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "description": "ID of the new role or null.",
+                "type": "Promise<String>"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 114,
+            "description": "Delete an existing role.\n\nIf the role is set for any user, it is automatically unset.",
+            "itemtype": "method",
+            "name": "deleteRoleAsync",
+            "params": [
+                {
+                    "name": "roleName",
+                    "description": "Name of role.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 180,
+            "description": "Rename an existing role.",
+            "itemtype": "method",
+            "name": "renameRoleAsync",
+            "params": [
+                {
+                    "name": "oldName",
+                    "description": "Old name of a role.",
+                    "type": "String"
+                },
+                {
+                    "name": "newName",
+                    "description": "New name of a role.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 252,
+            "description": "Add role parent to roles.\n\nPrevious parents are kept (role can have multiple parents). For users which have the\nparent role set, new subroles are added automatically.",
+            "itemtype": "method",
+            "name": "addRolesToParentAsync",
+            "params": [
+                {
+                    "name": "rolesNames",
+                    "description": "Name(s) of role(s).",
+                    "type": "Array|String"
+                },
+                {
+                    "name": "parentName",
+                    "description": "Name of parent role.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 273,
+            "itemtype": "method",
+            "name": "_addRoleToParentAsync",
+            "params": [
+                {
+                    "name": "roleName",
+                    "description": "Name of role.",
+                    "type": "String"
+                },
+                {
+                    "name": "parentName",
+                    "description": "Name of parent role.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise"
+            },
+            "access": "private",
+            "tagname": "",
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 337,
+            "description": "Remove role parent from roles.\n\nOther parents are kept (role can have multiple parents). For users which have the\nparent role set, removed subrole is removed automatically.",
+            "itemtype": "method",
+            "name": "removeRolesFromParentAsync",
+            "params": [
+                {
+                    "name": "rolesNames",
+                    "description": "Name(s) of role(s).",
+                    "type": "Array|String"
+                },
+                {
+                    "name": "parentName",
+                    "description": "Name of parent role.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 358,
+            "itemtype": "method",
+            "name": "_removeRoleFromParentAsync",
+            "params": [
+                {
+                    "name": "roleName",
+                    "description": "Name of role.",
+                    "type": "String"
+                },
+                {
+                    "name": "parentName",
+                    "description": "Name of parent role.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise"
+            },
+            "access": "private",
+            "tagname": "",
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 429,
+            "description": "Add users to roles.\n\nAdds roles to existing roles for each user.",
+            "example": [
+                "\n    Roles.addUsersToRolesAsync(userId, 'admin')\n    Roles.addUsersToRolesAsync(userId, ['view-secrets'], 'example.com')\n    Roles.addUsersToRolesAsync([user1, user2], ['user','editor'])\n    Roles.addUsersToRolesAsync([user1, user2], ['glorious-admin', 'perform-action'], 'example.org')"
+            ],
+            "itemtype": "method",
+            "name": "addUsersToRolesAsync",
+            "params": [
+                {
+                    "name": "users",
+                    "description": "User ID(s) or object(s) with an `_id` field.",
+                    "type": "Array|String"
+                },
+                {
+                    "name": "roles",
+                    "description": "Name(s) of roles to add users to. Roles have to exist.",
+                    "type": "Array|String"
+                },
+                {
+                    "name": "options",
+                    "description": "Options:\n  - `scope`: name of the scope, or `null` for the global role\n  - `ifExists`: if `true`, do not throw an exception if the role does not exist",
+                    "type": "Object|String",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "description": "Alternatively, it can be a scope name string.",
+                "type": "Promise"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 485,
+            "description": "Set users' roles.\n\nReplaces all existing roles with a new set of roles.",
+            "example": [
+                "\n    await Roles.setUserRolesAsync(userId, 'admin')\n    await Roles.setUserRolesAsync(userId, ['view-secrets'], 'example.com')\n    await Roles.setUserRolesAsync([user1, user2], ['user','editor'])\n    await Roles.setUserRolesAsync([user1, user2], ['glorious-admin', 'perform-action'], 'example.org')"
+            ],
+            "itemtype": "method",
+            "name": "setUserRolesAsync",
+            "params": [
+                {
+                    "name": "users",
+                    "description": "User ID(s) or object(s) with an `_id` field.",
+                    "type": "Array|String"
+                },
+                {
+                    "name": "roles",
+                    "description": "Name(s) of roles to add users to. Roles have to exist.",
+                    "type": "Array|String"
+                },
+                {
+                    "name": "options",
+                    "description": "Options:\n  - `scope`: name of the scope, or `null` for the global role\n  - `anyScope`: if `true`, remove all roles the user has, of any scope, if `false`, only the one in the same scope\n  - `ifExists`: if `true`, do not throw an exception if the role does not exist",
+                    "type": "Object|String",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "description": "Alternatively, it can be a scope name string.",
+                "type": "Promise"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 551,
+            "description": "Add one user to one role.",
+            "itemtype": "method",
+            "name": "_addUserToRole",
+            "params": [
+                {
+                    "name": "userId",
+                    "description": "The user ID.",
+                    "type": "String"
+                },
+                {
+                    "name": "roleName",
+                    "description": "Name of the role to add the user to. The role have to exist.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "Options:\n  - `scope`: name of the scope, or `null` for the global role\n  - `ifExists`: if `true`, do not throw an exception if the role does not exist",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise"
+            },
+            "access": "private",
+            "tagname": "",
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 647,
+            "description": "Returns an array of role names the given role name is a child of.",
+            "example": [
+                "\n    Roles._getParentRoleNames({ _id: 'admin', children; [] })"
+            ],
+            "itemtype": "method",
+            "name": "_getParentRoleNames",
+            "params": [
+                {
+                    "name": "role",
+                    "description": "The role object",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise"
+            },
+            "access": "private",
+            "tagname": "",
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 679,
+            "description": "Returns an array of role names the given role name is a parent of.",
+            "example": [
+                "\n    Roles._getInheritedRoleNames({ _id: 'admin', children; [] })"
+            ],
+            "itemtype": "method",
+            "name": "_getInheritedRoleNames",
+            "params": [
+                {
+                    "name": "role",
+                    "description": "The role object",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise"
+            },
+            "access": "private",
+            "tagname": "",
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 712,
+            "description": "Remove users from assigned roles.",
+            "example": [
+                "\n    await Roles.removeUsersFromRolesAsync(userId, 'admin')\n    await Roles.removeUsersFromRolesAsync([userId, user2], ['editor'])\n    await Roles.removeUsersFromRolesAsync(userId, ['user'], 'group1')"
+            ],
+            "itemtype": "method",
+            "name": "removeUsersFromRolesAsync",
+            "params": [
+                {
+                    "name": "users",
+                    "description": "User ID(s) or object(s) with an `_id` field.",
+                    "type": "Array|String"
+                },
+                {
+                    "name": "roles",
+                    "description": "Name(s) of roles to remove users from. Roles have to exist.",
+                    "type": "Array|String"
+                },
+                {
+                    "name": "options",
+                    "description": "Options:\n  - `scope`: name of the scope, or `null` for the global role\n  - `anyScope`: if set, role can be in any scope (`scope` option is ignored)",
+                    "type": "Object|String",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "description": "Alternatively, it can be a scope name string.",
+                "type": "Promise"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 759,
+            "description": "Remove one user from one role.",
+            "itemtype": "method",
+            "name": "_removeUserFromRole",
+            "params": [
+                {
+                    "name": "userId",
+                    "description": "The user ID.",
+                    "type": "String"
+                },
+                {
+                    "name": "roleName",
+                    "description": "Name of the role to add the user to. The role have to exist.",
+                    "type": "String"
+                },
+                {
+                    "name": "options",
+                    "description": "Options:\n  - `scope`: name of the scope, or `null` for the global role\n  - `anyScope`: if set, role can be in any scope (`scope` option is ignored)",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise"
+            },
+            "access": "private",
+            "tagname": "",
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 790,
+            "description": "Check if user has specified roles.",
+            "example": [
+                "\n    // global roles\n    await Roles.userIsInRoleAsync(user, 'admin')\n    await Roles.userIsInRoleAsync(user, ['admin','editor'])\n    await Roles.userIsInRoleAsync(userId, 'admin')\n    await Roles.userIsInRoleAsync(userId, ['admin','editor'])\n\n    // scope roles (global roles are still checked)\n    await Roles.userIsInRoleAsync(user, 'admin', 'group1')\n    await Roles.userIsInRoleAsync(userId, ['admin','editor'], 'group1')\n    await Roles.userIsInRoleAsync(userId, ['admin','editor'], {scope: 'group1'})"
+            ],
+            "itemtype": "method",
+            "name": "userIsInRoleAsync",
+            "params": [
+                {
+                    "name": "user",
+                    "description": "User ID or an actual user object.",
+                    "type": "String|Object"
+                },
+                {
+                    "name": "roles",
+                    "description": "Name of role or an array of roles to check against. If array,\n                            will return `true` if user is in _any_ role.\n                            Roles do not have to exist.",
+                    "type": "Array|String"
+                },
+                {
+                    "name": "options",
+                    "description": "Options:\n  - `scope`: name of the scope; if supplied, limits check to just that scope\n    the user's global roles will always be checked whether scope is specified or not\n  - `anyScope`: if set, role can be in any scope (`scope` option is ignored)\n\nAlternatively, it can be a scope name string.",
+                    "type": "Object|String",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "description": "`true` if user is in _any_ of the target roles",
+                "type": "Promise<Boolean>"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 869,
+            "description": "Retrieve user's roles.",
+            "itemtype": "method",
+            "name": "getRolesForUserAsync",
+            "params": [
+                {
+                    "name": "user",
+                    "description": "User ID or an actual user object.",
+                    "type": "String|Object"
+                },
+                {
+                    "name": "options",
+                    "description": "Options:\n  - `scope`: name of scope to provide roles for; if not specified, global roles are returned\n  - `anyScope`: if set, role can be in any scope (`scope` and `onlyAssigned` options are ignored)\n  - `onlyScoped`: if set, only roles in the specified scope are returned\n  - `onlyAssigned`: return only assigned roles and not automatically inferred (like subroles)\n  - `fullObjects`: return full roles objects (`true`) or just names (`false`) (`onlyAssigned` option is ignored) (default `false`)\n    If you have a use-case for this option, please file a feature-request. You shouldn't need to use it as it's\n    result strongly dependent on the internal data structure of this plugin.\n\nAlternatively, it can be a scope name string.",
+                    "type": "Object|String",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "description": "Array of user's roles, unsorted.",
+                "type": "Promise<Array>"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 954,
+            "description": "Retrieve cursor of all existing roles.",
+            "itemtype": "method",
+            "name": "getAllRoles",
+            "params": [
+                {
+                    "name": "queryOptions",
+                    "description": "Options which are passed directly\n                               through to `Meteor.roles.find(query, options)`.",
+                    "type": "Object",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "description": "Cursor of existing roles.",
+                "type": "Cursor"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 969,
+            "description": "Retrieve all users who are in target role.\n\nOptions:",
+            "itemtype": "method",
+            "name": "getUsersInRoleAsync",
+            "params": [
+                {
+                    "name": "roles",
+                    "description": "Name of role or an array of roles. If array, users\n                            returned will have at least one of the roles\n                            specified but need not have _all_ roles.\n                            Roles do not have to exist.",
+                    "type": "Array|String"
+                },
+                {
+                    "name": "options",
+                    "description": "Options:\n  - `scope`: name of the scope to restrict roles to; user's global\n    roles will also be checked\n  - `anyScope`: if set, role can be in any scope (`scope` option is ignored)\n  - `onlyScoped`: if set, only roles in the specified scope are returned\n  - `queryOptions`: options which are passed directly\n    through to `Meteor.users.find(query, options)`\n\nAlternatively, it can be a scope name string.",
+                    "type": "Object|String",
+                    "optional": true
+                },
+                {
+                    "name": "queryOptions",
+                    "description": "Options which are passed directly\n                               through to `Meteor.users.find(query, options)`",
+                    "type": "Object",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "description": "Cursor of users in roles.",
+                "type": "Promise<Cursor>"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 1004,
+            "description": "Retrieve all assignments of a user which are for the target role.\n\nOptions:",
+            "itemtype": "method",
+            "name": "getUserAssignmentsForRole",
+            "params": [
+                {
+                    "name": "roles",
+                    "description": "Name of role or an array of roles. If array, users\n                            returned will have at least one of the roles\n                            specified but need not have _all_ roles.\n                            Roles do not have to exist.",
+                    "type": "Array|String"
+                },
+                {
+                    "name": "options",
+                    "description": "Options:\n  - `scope`: name of the scope to restrict roles to; user's global\n    roles will also be checked\n  - `anyScope`: if set, role can be in any scope (`scope` option is ignored)\n  - `queryOptions`: options which are passed directly\n    through to `Meteor.roleAssignment.find(query, options)`\n\nAlternatively, it can be a scope name string.",
+                    "type": "Object|String",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "description": "Cursor of user assignments for roles.",
+                "type": "Cursor"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 1039,
+            "itemtype": "method",
+            "name": "_getUsersInRoleCursor",
+            "params": [
+                {
+                    "name": "roles",
+                    "description": "Name of role or an array of roles. If array, ids of users are\n                            returned which have at least one of the roles\n                            assigned but need not have _all_ roles.\n                            Roles do not have to exist.",
+                    "type": "Array|String"
+                },
+                {
+                    "name": "options",
+                    "description": "Options:\n  - `scope`: name of the scope to restrict roles to; user's global\n    roles will also be checked\n  - `anyScope`: if set, role can be in any scope (`scope` option is ignored)\n\nAlternatively, it can be a scope name string.",
+                    "type": "Object|String",
+                    "optional": true
+                },
+                {
+                    "name": "filter",
+                    "description": "Options which are passed directly\n                               through to `Meteor.roleAssignment.find(query, options)`",
+                    "type": "Object",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "description": "Cursor to the assignment documents",
+                "type": "Object"
+            },
+            "access": "private",
+            "tagname": "",
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 1095,
+            "description": "Deprecated. Use `getScopesForUser` instead.",
+            "itemtype": "method",
+            "name": "getGroupsForUserAsync",
+            "return": {
+                "description": "",
+                "type": "Promise<Array>"
+            },
+            "static": 1,
+            "deprecated": true,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 1115,
+            "description": "Retrieve users scopes, if any.",
+            "itemtype": "method",
+            "name": "getScopesForUserAsync",
+            "params": [
+                {
+                    "name": "user",
+                    "description": "User ID or an actual user object.",
+                    "type": "String|Object"
+                },
+                {
+                    "name": "roles",
+                    "description": "Name of roles to restrict scopes to.",
+                    "type": "Array|String",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "description": "Array of user's scopes, unsorted.",
+                "type": "Promise<Array>"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 1156,
+            "description": "Rename a scope.\n\nRoles assigned with a given scope are changed to be under the new scope.",
+            "itemtype": "method",
+            "name": "renameScopeAsync",
+            "params": [
+                {
+                    "name": "oldName",
+                    "description": "Old name of a scope.",
+                    "type": "String"
+                },
+                {
+                    "name": "newName",
+                    "description": "New name of a scope.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 1190,
+            "description": "Remove a scope.\n\nRoles assigned with a given scope are removed.",
+            "itemtype": "method",
+            "name": "removeScopeAsync",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "The name of a scope.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 1206,
+            "description": "Throw an exception if `roleName` is an invalid role name.",
+            "itemtype": "method",
+            "name": "_checkRoleName",
+            "params": [
+                {
+                    "name": "roleName",
+                    "description": "A role name to match against.",
+                    "type": "String"
+                }
+            ],
+            "access": "private",
+            "tagname": "",
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 1224,
+            "description": "Find out if a role is an ancestor of another role.\n\nWARNING: If you check this on the client, please make sure all roles are published.",
+            "itemtype": "method",
+            "name": "isParentOfAsync",
+            "params": [
+                {
+                    "name": "parentRoleName",
+                    "description": "The role you want to research.",
+                    "type": "String"
+                },
+                {
+                    "name": "childRoleName",
+                    "description": "The role you expect to be among the children of parentRoleName.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Promise"
+            },
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 1266,
+            "description": "Normalize options.",
+            "itemtype": "method",
+            "name": "_normalizeOptions",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "Options to normalize.",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "Normalized options.",
+                "type": "Object"
+            },
+            "access": "private",
+            "tagname": "",
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 1287,
+            "description": "Normalize scope name.",
+            "itemtype": "method",
+            "name": "_normalizeScopeName",
+            "params": [
+                {
+                    "name": "scopeName",
+                    "description": "A scope name to normalize.",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "Normalized scope name.",
+                "type": "String"
+            },
+            "access": "private",
+            "tagname": "",
+            "static": 1,
+            "class": "Roles",
+            "module": "Roles"
+        },
+        {
+            "file": "roles/roles_common_async.js",
+            "line": 1305,
             "description": "Throw an exception if `scopeName` is an invalid scope name.",
             "itemtype": "method",
             "name": "_checkRoleName",
@@ -875,7 +1695,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 41,
+            "line": 46,
             "itemtype": "method",
             "name": "_isNewRole",
             "params": [
@@ -897,7 +1717,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 54,
+            "line": 59,
             "itemtype": "method",
             "name": "_isOldRole",
             "params": [
@@ -919,7 +1739,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 67,
+            "line": 72,
             "itemtype": "method",
             "name": "_isNewField",
             "params": [
@@ -941,7 +1761,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 80,
+            "line": 85,
             "itemtype": "method",
             "name": "_isOldField",
             "params": [
@@ -963,7 +1783,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 93,
+            "line": 101,
             "itemtype": "method",
             "name": "_convertToNewRole",
             "params": [
@@ -985,7 +1805,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 110,
+            "line": 118,
             "itemtype": "method",
             "name": "_convertToOldRole",
             "params": [
@@ -1007,7 +1827,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 126,
+            "line": 134,
             "itemtype": "method",
             "name": "_convertToNewField",
             "params": [
@@ -1034,7 +1854,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 170,
+            "line": 178,
             "itemtype": "method",
             "name": "_convertToOldField",
             "params": [
@@ -1061,7 +1881,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 216,
+            "line": 232,
             "itemtype": "method",
             "name": "_defaultUpdateUser",
             "params": [
@@ -1084,7 +1904,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 234,
+            "line": 253,
             "itemtype": "method",
             "name": "_defaultUpdateRole",
             "params": [
@@ -1107,7 +1927,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 247,
+            "line": 266,
             "itemtype": "method",
             "name": "_dropCollectionIndex",
             "params": [
@@ -1130,7 +1950,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 264,
+            "line": 286,
             "description": "Migrates `Meteor.users` and `Meteor.roles` to the new format.",
             "itemtype": "method",
             "name": "_forwardMigrate",
@@ -1159,7 +1979,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 294,
+            "line": 319,
             "description": "Moves the assignments from `Meteor.users` to `Meteor.roleAssignment`.",
             "itemtype": "method",
             "name": "_forwardMigrate2",
@@ -1178,7 +1998,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 321,
+            "line": 351,
             "description": "Migrates `Meteor.users` and `Meteor.roles` to the old format.\n\nWe assume that we are converting back a failed migration, so values can only be\nwhat were valid values in the old format. So no group names starting with `$` and\nno subroles.",
             "itemtype": "method",
             "name": "_backwardMigrate",
@@ -1207,7 +2027,7 @@
         },
         {
             "file": "roles/roles_server.js",
-            "line": 356,
+            "line": 386,
             "description": "Moves the assignments from `Meteor.roleAssignment` back to to `Meteor.users`.",
             "itemtype": "method",
             "name": "_backwardMigrate2",
@@ -1225,5 +2045,82 @@
             "module": "Roles"
         }
     ],
-    "warnings": []
+    "warnings": [
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:46"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:114"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:180"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:252"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:273"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:337"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:358"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:429"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:485"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:551"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:647"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:679"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:712"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:759"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:1095"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:1156"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:1190"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " roles/roles_common_async.js:1224"
+        },
+        {
+            "message": "Missing item type\nHelper, resolves async some",
+            "line": " roles/roles_common_async.js:46"
+        }
+    ]
 }
