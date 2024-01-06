@@ -88,6 +88,42 @@ _.extend(Roles, {
   },
 
   /**
+   * Create a new role. Whitespace will be trimmed.
+   *
+   * @method createRoleAsync
+   * @param {String} role Name of role
+   * @param {Boolean} [unlessExists] Optional. If true, existence of a role will not throw an exception.
+   * @return {String} id of new role
+   */
+  createRoleAsync: async function (role, unlessExists) {
+    var id,
+        match
+
+    if (!role
+        || 'string' !== typeof role
+        || role.trim().length === 0) {
+      return
+    }
+
+    try {
+      id = await Meteor.roles.insertAsync({'name': role.trim()})
+      return id
+    } catch (e) {
+      // (from Meteor accounts-base package, insertUserDoc func)
+      // XXX string parsing sucks, maybe
+      // https://jira.mongodb.org/browse/SERVER-3069 will get fixed one day
+      if (/E11000 duplicate key error.*(index.*roles|roles.*index).*name/.test(e.errmsg || e.err)) {
+        if (unlessExists) return null;
+        throw new Error("Role '" + role.trim() + "' already exists.")
+      }
+      else {
+        throw e
+      }
+    }
+  },
+
+
+  /**
    * Delete an existing role.  Will throw "Role in use" error if any users
    * are currently assigned to the target role.
    *
@@ -110,6 +146,30 @@ _.extend(Roles, {
       Meteor.roles.remove({_id: thisRole._id})
     }
   },
+
+  /**
+   * Delete an existing role.  Will throw "Role in use" error if any users
+   * are currently assigned to the target role.
+   *
+   * @method deleteRoleAsync
+   * @param {String} role Name of role
+   */
+  deleteRoleAsync: async function (role) {
+    if (!role) return
+
+    var foundExistingUser = await Meteor.users.findOneAsync(
+                              {roles: {$in: [role]}},
+                              {fields: {_id: 1}})
+
+    if (foundExistingUser) {
+      throw new Meteor.Error(403, 'Role in use')
+    }
+
+    var thisRole = await Meteor.roles.findOneAsync({name: role})
+    if (thisRole) {
+      await Meteor.roles.removeAsync({_id: thisRole._id})
+    }
+  },  
 
   /**
    * Add users to roles. Will create roles as needed.
@@ -148,6 +208,42 @@ _.extend(Roles, {
   },
 
   /**
+   * Add users to roles. Will create roles as needed.
+   *
+   * NOTE: Mixing grouped and non-grouped roles for the same user
+   *       is not supported and will throw an error.
+   *
+   * Makes 2 calls to database:
+   *  1. retrieve list of all existing roles
+   *  2. update users' roles
+   *
+   * @example
+   *     Roles.addUsersToRolesAsync(userId, 'admin')
+   *     Roles.addUsersToRolesAsync(userId, ['view-secrets'], 'example.com')
+   *     Roles.addUsersToRolesAsync([user1, user2], ['user','editor'])
+   *     Roles.addUsersToRolesAsync([user1, user2], ['glorious-admin', 'perform-action'], 'example.org')
+   *     Roles.addUsersToRolesAsync(userId, 'admin', Roles.GLOBAL_GROUP)
+   *
+   * @method addUsersToRolesAsync
+   * @param {Array|String} users User id(s) or object(s) with an _id field
+   * @param {Array|String} roles Name(s) of roles/permissions to add users to
+   * @param {String} [group] Optional group name. If supplied, roles will be
+   *                         specific to that group.
+   *                         Group names can not start with a '$' or contain
+   *                         null characters.  Periods in names '.' are
+   *                         automatically converted to underscores.
+   *                         The special group Roles.GLOBAL_GROUP provides
+   *                         a convenient way to assign blanket roles/permissions
+   *                         across all groups.  The roles/permissions in the
+   *                         Roles.GLOBAL_GROUP group will be automatically
+   *                         included in checks for any group.
+   */
+  addUsersToRolesAsync: async function (users, roles, group) {
+    // use Template pattern to update user roles
+    await Roles._updateUserRolesAsync(users, roles, group, Roles._update_$addToSet_fn)
+  },
+
+  /**
    * Set a users roles/permissions.
    *
    * @example
@@ -175,6 +271,35 @@ _.extend(Roles, {
     // use Template pattern to update user roles
     Roles._updateUserRoles(users, roles, group, Roles._update_$set_fn)
   },
+
+  /**
+   * Set a users roles/permissions.
+   *
+   * @example
+   *     Roles.setUserRoles(userId, 'admin')
+   *     Roles.setUserRoles(userId, ['view-secrets'], 'example.com')
+   *     Roles.setUserRoles([user1, user2], ['user','editor'])
+   *     Roles.setUserRoles([user1, user2], ['glorious-admin', 'perform-action'], 'example.org')
+   *     Roles.setUserRoles(userId, 'admin', Roles.GLOBAL_GROUP)
+   *
+   * @method setUserRolesAsync
+   * @param {Array|String} users User id(s) or object(s) with an _id field
+   * @param {Array|String} roles Name(s) of roles/permissions to add users to
+   * @param {String} [group] Optional group name. If supplied, roles will be
+   *                         specific to that group.
+   *                         Group names can not start with '$'.
+   *                         Periods in names '.' are automatically converted
+   *                         to underscores.
+   *                         The special group Roles.GLOBAL_GROUP provides
+   *                         a convenient way to assign blanket roles/permissions
+   *                         across all groups.  The roles/permissions in the
+   *                         Roles.GLOBAL_GROUP group will be automatically
+   *                         included in checks for any group.
+   */
+  setUserRolesAsync: async function (users, roles, group) {
+    // use Template pattern to update user roles
+    await Roles._updateUserRolesAsync(users, roles, group, Roles._update_$set_fn)
+  },  
 
   /**
    * Remove users from roles
@@ -252,6 +377,84 @@ _.extend(Roles, {
       throw ex
     }
   },
+
+  /**
+   * Remove users from roles
+   *
+   * @example
+   *     Roles.removeUsersFromRoles(users.bob, 'admin')
+   *     Roles.removeUsersFromRoles([users.bob, users.joe], ['editor'])
+   *     Roles.removeUsersFromRoles([users.bob, users.joe], ['editor', 'user'])
+   *     Roles.removeUsersFromRoles(users.eve, ['user'], 'group1')
+   *
+   * @method removeUsersFromRolesAsync
+   * @param {Array|String} users User id(s) or object(s) with an _id field
+   * @param {Array|String} roles Name(s) of roles to remove users from
+   * @param {String} [group] Optional. Group name. If supplied, only that
+   *                         group will have roles removed.
+   */
+  removeUsersFromRolesAsync: async function (users, roles, group) {
+    var update
+
+    if (!users) throw new Error ("Missing 'users' param")
+    if (!roles) throw new Error ("Missing 'roles' param")
+    if (group) {
+      if ('string' !== typeof group)
+        throw new Error ("Roles error: Invalid parameter 'group'. Expected 'string' type")
+      if ('$' === group[0])
+        throw new Error ("Roles error: groups can not start with '$'")
+
+      // convert any periods to underscores
+      group = group.replace(/\./g, '_')
+    }
+
+    // ensure arrays
+    if (!_.isArray(users)) users = [users]
+    if (!_.isArray(roles)) roles = [roles]
+
+    // ensure users is an array of user ids
+    users = _.reduce(users, function (memo, user) {
+      var _id
+      if ('string' === typeof user) {
+        memo.push(user)
+      } else if ('object' === typeof user) {
+        _id = user._id
+        if ('string' === typeof _id) {
+          memo.push(_id)
+        }
+      }
+      return memo
+    }, [])
+
+    // update all users, remove from roles set
+
+    if (group) {
+      update = {$pullAll: {}}
+      update.$pullAll['roles.'+group] = roles
+    } else {
+      update = {$pullAll: {roles: roles}}
+    }
+
+    try {
+      if (Meteor.isClient) {
+        // Iterate over each user to fulfill Meteor's 'one update per ID' policy
+        for (const user of users) {
+          await Meteor.users.updateAsync({_id:user}, update)
+        }
+      } else {
+        // On the server we can leverage MongoDB's $in operator for performance
+        await Meteor.users.updateAsync({_id:{$in:users}}, update, {multi: true})
+      }
+    }
+    catch (ex) {
+      if (ex.name === 'MongoError' && isMongoMixError(ex.errmsg || ex.err)) {
+        throw new Error (mixingGroupAndNonGroupErrorMsg)
+      }
+
+      throw ex
+    }
+  },
+
 
   /**
    * Check if user has specified permissions/roles
@@ -366,6 +569,118 @@ _.extend(Roles, {
   },
 
   /**
+   * Check if user has specified permissions/roles
+   *
+   * @example
+   *     // non-group usage
+   *     Roles.userIsInRoleAsync(user, 'admin')
+   *     Roles.userIsInRoleAsync(user, ['admin','editor'])
+   *     Roles.userIsInRoleAsync(userId, 'admin')
+   *     Roles.userIsInRoleAsync(userId, ['admin','editor'])
+   *
+   *     // per-group usage
+   *     Roles.userIsInRoleAsync(user,   ['admin','editor'], 'group1')
+   *     Roles.userIsInRoleAsync(userId, ['admin','editor'], 'group1')
+   *     Roles.userIsInRoleAsync(userId, ['admin','editor'], Roles.GLOBAL_GROUP)
+   *
+   *     // this format can also be used as short-hand for Roles.GLOBAL_GROUP
+   *     Roles.userIsInRoleAsync(user, 'admin')
+   *
+   * @method userIsInRole
+   * @param {String|Object} user User Id or actual user object
+   * @param {String|Array} roles Name of role/permission or Array of
+   *                            roles/permissions to check against.  If array,
+   *                            will return true if user is in _any_ role.
+   * @param {String} [group] Optional. Name of group.  If supplied, limits check
+   *                         to just that group.
+   *                         The user's Roles.GLOBAL_GROUP will always be checked
+   *                         whether group is specified or not.
+   * @return {Boolean} true if user is in _any_ of the target roles
+   */
+  userIsInRoleAsync: async function (user, roles, group) {
+    var id,
+        userRoles,
+        query,
+        groupQuery,
+        found = false
+
+    // ensure array to simplify code
+    if (!_.isArray(roles)) {
+      roles = [roles]
+    }
+
+    if (!user) return false
+    if (group) {
+      if ('string' !== typeof group) return false
+      if ('$' === group[0]) return false
+
+      // convert any periods to underscores
+      group = group.replace(/\./g, '_')
+    }
+
+    if ('object' === typeof user) {
+      userRoles = user.roles
+      if (_.isArray(userRoles)) {
+        return _.some(roles, function (role) {
+          return _.contains(userRoles, role)
+        })
+      } else if (userRoles && 'object' === typeof userRoles) {
+        // roles field is dictionary of groups
+        found = _.isArray(userRoles[group]) && _.some(roles, function (role) {
+          return _.contains(userRoles[group], role)
+        })
+        if (!found) {
+          // not found in regular group or group not specified.
+          // check Roles.GLOBAL_GROUP, if it exists
+          found = _.isArray(userRoles[Roles.GLOBAL_GROUP]) && _.some(roles, function (role) {
+            return _.contains(userRoles[Roles.GLOBAL_GROUP], role)
+          })
+        }
+        return found
+      }
+
+      // missing roles field, try going direct via id
+      id = user._id
+    } else if ('string' === typeof user) {
+      id = user
+    }
+
+    if (!id) return false
+
+
+    query = {_id: id, $or: []}
+
+    // always check Roles.GLOBAL_GROUP
+    groupQuery = {}
+    groupQuery['roles.'+Roles.GLOBAL_GROUP] = {$in: roles}
+    query.$or.push(groupQuery)
+
+    if (group) {
+      // structure of query, when group specified including Roles.GLOBAL_GROUP
+      //   {_id: id,
+      //    $or: [
+      //      {'roles.group1':{$in: ['admin']}},
+      //      {'roles.__global_roles__':{$in: ['admin']}}
+      //    ]}
+      groupQuery = {}
+      groupQuery['roles.'+group] = {$in: roles}
+      query.$or.push(groupQuery)
+    } else {
+      // structure of query, where group not specified. includes
+      // Roles.GLOBAL_GROUP
+      //   {_id: id,
+      //    $or: [
+      //      {roles: {$in: ['admin']}},
+      //      {'roles.__global_roles__': {$in: ['admin']}}
+      //    ]}
+      query.$or.push({roles: {$in: roles}})
+    }
+
+    found = await Meteor.users.findOneAsync(query, {fields: {_id: 1}})
+    return found ? true : false
+  },  
+
+  /**
    * Retrieve users roles
    *
    * @method getRolesForUser
@@ -386,6 +701,48 @@ _.extend(Roles, {
 
     if ('string' === typeof user) {
       user = Meteor.users.findOne(
+               {_id: user},
+               {fields: {roles: 1}})
+
+    } else if ('object' !== typeof user) {
+      // invalid user object
+      return []
+    }
+
+    if (!user || !user.roles) return []
+
+    if (group) {
+      return _.union(user.roles[group] || [], user.roles[Roles.GLOBAL_GROUP] || [])
+    }
+
+    if (_.isArray(user.roles))
+      return user.roles
+
+    // using groups but group not specified. return global group, if exists
+    return user.roles[Roles.GLOBAL_GROUP] || []
+  },
+
+  /**
+   * Retrieve users roles
+   *
+   * @method getRolesForUserAsync
+   * @param {String|Object} user User Id or actual user object
+   * @param {String} [group] Optional name of group to restrict roles to.
+   *                         User's Roles.GLOBAL_GROUP will also be included.
+   * @return {Array} Array of user's roles, unsorted.
+   */
+  getRolesForUserAsync: async function (user, group) {
+    if (!user) return []
+    if (group) {
+      if ('string' !== typeof group) return []
+      if ('$' === group[0]) return []
+
+      // convert any periods to underscores
+      group = group.replace(/\./g, '_')
+    }
+
+    if ('string' === typeof user) {
+      user = await Meteor.users.findOneAsync(
                {_id: user},
                {fields: {roles: 1}})
 
@@ -484,6 +841,7 @@ _.extend(Roles, {
     return Meteor.users.find(query, options);
   },  // end getUsersInRole
 
+  
   /**
    * Retrieve users groups, if any
    *
@@ -528,6 +886,49 @@ _.extend(Roles, {
 
   }, //End getGroupsForUser
 
+  /**
+   * Retrieve users groups, if any
+   *
+   * @method getGroupsForUserAsync
+   * @param {String|Object} user User Id or actual user object
+   * @param {String} [role] Optional name of roles to restrict groups to.
+   *
+   * @return {Array} Array of user's groups, unsorted. Roles.GLOBAL_GROUP will be omitted
+   */
+  getGroupsForUserAsync: async function (user, role) {
+    var userGroups = [];
+
+    if (!user) return []
+    if (role) {
+      if ('string' !== typeof role) return []
+      if ('$' === role[0]) return []
+    }
+
+    if ('string' === typeof user) {
+      user = await Meteor.users.findOneAsync(
+               {_id: user},
+               {fields: {roles: 1}})
+
+    }else if ('object' !== typeof user) {
+      // invalid user object
+      return []
+    }
+
+    //User has no roles or is not using groups
+    if (!user || !user.roles || _.isArray(user.roles)) return []
+
+    if (role) {
+      _.each(user.roles, function(groupRoles, groupName) {
+        if (_.contains(groupRoles, role) && groupName !== Roles.GLOBAL_GROUP) {
+          userGroups.push(groupName);
+        }
+      });
+      return userGroups;
+    }else {
+      return _.without(_.keys(user.roles), Roles.GLOBAL_GROUP);
+    }
+
+  }, //End getGroupsForUserAsync
 
   /**
    * Private function 'template' that uses $set to construct an update object
@@ -695,9 +1096,128 @@ _.extend(Roles, {
 
       throw ex
     }
-  }  // end _updateUserRoles
+  },  // end _updateUserRoles
+
+  /**
+   * Internal function that uses the Template pattern to adds or sets roles
+   * for users.
+   *
+   * @method _updateUserRolesAsync
+   * @protected
+   * @param {Array|String} users user id(s) or object(s) with an _id field
+   * @param {Array|String} roles name(s) of roles/permissions to add users to
+   * @param {String} group Group name. If not null or undefined, roles will be
+   *                         specific to that group.
+   *                         Group names can not start with '$'.
+   *                         Periods in names '.' are automatically converted
+   *                         to underscores.
+   *                         The special group Roles.GLOBAL_GROUP provides
+   *                         a convenient way to assign blanket roles/permissions
+   *                         across all groups.  The roles/permissions in the
+   *                         Roles.GLOBAL_GROUP group will be automatically
+   *                         included in checks for any group.
+   * @param {Function} updateFactory Func which returns an update object that
+   *                         will be passed to Mongo.
+   *   @param {Array} roles
+   *   @param {String} [group]
+   */
+  _updateUserRolesAsync: async function (users, roles, group, updateFactory) {
+    if (!users) throw new Error ("Missing 'users' param")
+    if (!roles) throw new Error ("Missing 'roles' param")
+    if (group) {
+      if ('string' !== typeof group)
+        throw new Error ("Roles error: Invalid parameter 'group'. Expected 'string' type")
+      if ('$' === group[0])
+        throw new Error ("Roles error: groups can not start with '$'")
+
+      // convert any periods to underscores
+      group = group.replace(/\./g, '_')
+    }
+
+    var existingRoles,
+        query,
+        update
+
+    // ensure arrays to simplify code
+    if (!_.isArray(users)) users = [users]
+    if (!_.isArray(roles)) roles = [roles]
+
+    // remove invalid roles
+    roles = _.reduce(roles, function (memo, role) {
+      if (role
+          && 'string' === typeof role
+          && role.trim().length > 0) {
+        memo.push(role.trim())
+      }
+      return memo
+    }, [])
+
+    // empty roles array is ok, since it might be a $set operation to clear roles
+    //if (roles.length === 0) return
+
+    // ensure all roles exist in 'roles' collection
+    if (Meteor.isClient) {
+      existingRoles = _.reduce(await Meteor.roles.find({}).fetchAsync(), function (memo, role) {
+        memo[role.name] = true
+        return memo
+      }, {})
+
+      for (const role of roles) {
+        if (!existingRoles[role]) {
+          await Roles.createRoleAsync(role)
+        }
+      }
+    }
+    else {
+      for (const role of roles) {
+        await Roles.createRoleAsync(role, true)
+      }
+    }
+
+    // ensure users is an array of user ids
+    users = _.reduce(users, function (memo, user) {
+      var _id
+      if ('string' === typeof user) {
+        memo.push(user)
+      } else if ('object' === typeof user) {
+        _id = user._id
+        if ('string' === typeof _id) {
+          memo.push(_id)
+        }
+      }
+      return memo
+    }, [])
+
+    // update all users
+    update = await updateFactory(roles, group)
+
+    try {
+      if (Meteor.isClient) {
+        // On client, iterate over each user to fulfill Meteor's
+        // 'one update per ID' policy
+        for (const user of users) {
+          await Meteor.users.updateAsync({_id: user}, update)
+        }
+      } else {
+        // On the server we can use MongoDB's $in operator for
+        // better performance
+        await Meteor.users.updateAsync(
+          {_id: {$in: users}},
+          update,
+          {multi: true})
+      }
+    }
+    catch (ex) {
+      if (ex.name === 'MongoError' && isMongoMixError(ex.errmsg || ex.err)) {
+        throw new Error (mixingGroupAndNonGroupErrorMsg)
+      }
+
+      throw ex
+    }
+  }  // end _updateUserRolesAsync
 
 })  // end _.extend(Roles ...)
+
 
 
 function isMongoMixError (errorMsg) {

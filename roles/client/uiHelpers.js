@@ -67,6 +67,33 @@ Roles._uiHelpers = {
     }
 
     return Roles.userIsInRole(user, roles)
+  },
+
+  isInRoleAsync: async function (role, group) {
+    var user = Meteor.user(),
+        comma = (role || '').indexOf(','),
+        roles
+
+    if (!user) return false
+    if (!Match.test(role, String)) return false
+
+    if (comma !== -1) {
+      roles = _.reduce(role.split(','), function (memo, r) {
+        if (!r || !r.trim()) {
+          return memo
+        }
+        memo.push(r.trim())
+        return memo
+      }, [])
+    } else {
+      roles = [role]
+    }
+
+    if (Match.test(group, String)) {
+      return Roles.userIsInRoleAsync(user, roles, group)
+    }
+
+    return Roles.userIsInRoleAsync(user, roles)
   }
 }
 

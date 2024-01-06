@@ -1,17 +1,17 @@
 Package.describe({
   summary: "Authorization package for Meteor",
-  version: "1.3.0",
-  git: "https://github.com/Meteor-Community-Packages/meteor-roles.git",
-  name: "alanning:roles"
+  version: "1.3.1",
+  git: "https://github.com/jbl2024/meteor-roles.git",
+  name: "jbl2024:roles"
 });
 
 Package.onUse(function (api) {
-  api.versionsFrom("1.9");
+  api.versionsFrom("2.13.3");
 
   var both = ['client', 'server'];
 
   api.use(['underscore',
-           'accounts-base@1.9.0 || 2.0.0',
+           'accounts-base@2.2.8',
            'tracker',
            'mongo',
            'check'], both);
@@ -28,17 +28,19 @@ Package.onUse(function (api) {
 });
 
 Package.onTest(function (api) {
-  api.versionsFrom("1.9");
+  api.versionsFrom("2.13.3");
 
   var both = ['client', 'server'];
 
   // `accounts-password` is included so `Meteor.users` exists
 
-  api.use(['alanning:roles',
-           'accounts-password@1.7.1 || 2.0.0',
+  api.use(['jbl2024:roles',
+           'accounts-password@2.3.4',
            'underscore',
            'tinytest'], both);
 
   api.addFiles('roles/tests/client.js', 'client');
+  api.addFiles('roles/tests/client_async.js', 'client');
   api.addFiles('roles/tests/server.js', 'server');
+  api.addFiles('roles/tests/server_async.js', 'server');
 });

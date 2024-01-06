@@ -51,7 +51,7 @@ routepolicy@1.1.1
 service-configuration@1.1.0
 sha@1.0.9
 socket-stream-client@0.4.0
-tinytest@1.1.1
+tinytest@1.2.2
 tracker@1.2.0
 underscore@1.0.10
 url@1.3.2

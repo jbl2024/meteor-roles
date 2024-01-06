@@ -1,6 +1,8 @@
 meteor-roles v1
 ===============
 
+**Fork to add async support**
+
 **This version of the package is being maintained just for security and compatibility issues.
 Please consider the [latest version](https://github.com/Meteor-Community-Packages/meteor-roles).**
 
