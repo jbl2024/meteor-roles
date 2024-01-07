@@ -1,4 +1,3 @@
-;(function () {
 
   var users = {},
       roles = ['admin','editor','user']
@@ -161,6 +160,7 @@
   Tinytest.add(
     'roles - async - can add individual users to roles', 
     async function (test) {
+      try {
       await resetAsync() 
 
       await Roles.addUsersToRolesAsync(users.eve, ['admin', 'user'])
@@ -174,6 +174,9 @@
       await testUserAsync(test, 'eve', ['admin', 'user'])
       await testUserAsync(test, 'bob', [])
       await testUserAsync(test, 'joe', ['editor', 'user'])
+      } catch (error) {
+        throw(error)
+      }
     })
 
   Tinytest.add(
@@ -1046,8 +1049,5 @@
         tmp[key] = ex[key]
       }
     }
-    console.log(JSON.stringify(tmp));
+    Log.log(JSON.stringify(tmp));
   }
-
-}());
-  

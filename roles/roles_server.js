@@ -1,6 +1,3 @@
-"use strict"
-
-
 /**
  * Roles collection documents consist only of an id and a role name.
  *   ex: { _id: "123", name: "admin" }

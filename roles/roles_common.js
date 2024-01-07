@@ -1,5 +1,3 @@
-;(function () {
-
 /**
  * Provides functions related to user authorization. Compatible with built-in Meteor accounts packages.
  *
@@ -25,8 +23,6 @@ if (!Meteor.roles) {
 if ('undefined' === typeof Roles) {
   Roles = {}
 }
-
-"use strict";
 
 var mixingGroupAndNonGroupErrorMsg = "Roles error: Can't mix grouped and non-grouped roles for same user";
 
@@ -1241,5 +1237,3 @@ function isMongoMixError (errorMsg) {
 function strContains (haystack, needle) {
   return -1 !== haystack.indexOf(needle)
 }
-
-}());

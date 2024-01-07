@@ -1,5 +1,3 @@
-;(function () {
-
   var users = {},
       roles = ['admin','editor','user']
 
@@ -1049,5 +1047,3 @@
     }
     console.log(JSON.stringify(tmp));
   }
-
-}());

@@ -1,7 +1,3 @@
-;(function () {
-
-  "use strict";
-
   var users,
       roles = ['admin','editor','user']
 
@@ -105,5 +101,3 @@
       Roles.addUsersToRoles(users.joe, ['admin'], 'example.k12.va.us')
       test.equal(Roles.getRolesForUser(users.joe, 'example.k12.va.us'), ['admin'])
     })
-
-}());

@@ -1,7 +1,3 @@
-;(function () {
-
-  "use strict";
-
   var users,
       roles = ['admin','editor','user']
 
@@ -104,5 +100,3 @@
       await Roles.addUsersToRolesAsync(users.joe, ['admin'], 'example.k12.va.us')
       test.equal(await Roles.getRolesForUserAsync(users.joe, 'example.k12.va.us'), ['admin'])
     })
-
-}());

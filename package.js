@@ -1,6 +1,6 @@
 Package.describe({
   summary: "Authorization package for Meteor",
-  version: "1.3.1",
+  version: "1.3.2",
   git: "https://github.com/jbl2024/meteor-roles.git",
   name: "jbl2024:roles"
 });
@@ -10,7 +10,8 @@ Package.onUse(function (api) {
 
   var both = ['client', 'server'];
 
-  api.use(['underscore',
+  api.use(['ecmascript',
+           'underscore',
            'accounts-base@2.2.8',
            'tracker',
            'mongo',
